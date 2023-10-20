@@ -28,7 +28,6 @@ class Environment(pygame.sprite.Sprite):
 class Snake(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__() 
-        self.rect = pygame.Rect(40,40, BLOCK_SIZE, BLOCK_SIZE)
         self.parts = []
         self.speed = BLOCK_SIZE
         self.move_timer = pygame.time.get_ticks()
@@ -40,46 +39,56 @@ class Snake(pygame.sprite.Sprite):
         hasMoved = False
         now = pygame.time.get_ticks()
         
-        if self.rect.top > 0:
-            if pressed_keys[K_UP] and hasMoved == False:
-                self.direction = SnakeDirection.UP
-                hasMoved = True
-        if self.rect.bottom < SCREEN_HEIGHT:
-            if pressed_keys[K_DOWN] and hasMoved == False:
-                self.direction = SnakeDirection.DOWN
-                hasMoved = True
-        if self.rect.left > 0:
-            if pressed_keys[K_LEFT] and hasMoved == False:
-                self.direction = SnakeDirection.LEFT
-                hasMoved = True
-        if self.rect.right < SCREEN_WIDTH:
-            if pressed_keys[K_RIGHT] and hasMoved == False:
-                self.direction = SnakeDirection.RIGHT
-                hasMoved = True
-        x, y = getSnakeMovingParams(self.direction)
-        self.moveTheDamnSnake(now, x, y)
+        if pressed_keys[K_UP] and hasMoved == False:
+            self.direction = SnakeDirection.UP
+            hasMoved = True
+    
+        if pressed_keys[K_DOWN] and hasMoved == False:
+            self.direction = SnakeDirection.DOWN
+            hasMoved = True
+    
+        if pressed_keys[K_LEFT] and hasMoved == False:
+            self.direction = SnakeDirection.LEFT
+            hasMoved = True
+    
+        if pressed_keys[K_RIGHT] and hasMoved == False:
+            self.direction = SnakeDirection.RIGHT
+            hasMoved = True
+
+        self.moveTheDamnSnake(now)
 
     def draw(self, surface):
-        pygame.draw.rect(surface, RED, self.rect, 1, 3)
         for part in self.parts:
             part.draw(surface)
     def addPart(self, snakePart):
-        print(len(self.parts))
         self.parts.append(snakePart)
     def removePart(self):
         self.parts.pop()
-    def moveTheDamnSnake(self, now, x, y):
+    def moveTheDamnSnake(self, now):
         if now - self.move_timer > self.move_interval:
-            self.rect.move_ip(x, y)
-            moveParts(x, y, self.parts, self.direction)
+            self.moveParts(self.direction)
             self.move_timer = now
+    def moveParts(self, newDirection):
+        self.parts[0].lastDirection = self.parts[0].currentDirection
+        self.parts[0].currentDirection = newDirection
+        x, y = getSnakeMovingParams(self.parts[0].currentDirection)
+        self.parts[0].rect.move_ip(x,y)
+        for idPart in range(1, len(self.parts)):
+            part = self.parts[idPart]
+            part.lastDirection = part.currentDirection
+            part.currentDirection = self.parts[idPart-1].lastDirection
+            x, y = getSnakeMovingParams(part.currentDirection)
+            part.rect.move_ip(x, y)
+            self.parts[idPart] = part
+        return
 
 class SnakePart(pygame.sprite.Sprite):
     def __init__(self, position):
         super().__init__() 
         self.position = position
         self.rect = pygame.Rect(40,40+(BLOCK_SIZE*self.position), BLOCK_SIZE, BLOCK_SIZE)
-        self.direction = SnakeDirection.UP
+        self.currentDirection = SnakeDirection.UP
+        self.lastDirection = SnakeDirection.UP
 
     def draw(self, surface):
         pygame.draw.rect(surface, RED, self.rect, 1, 3)
@@ -89,13 +98,6 @@ class SnakeDirection(Enum):
     RIGHT = 2
     DOWN = 3
     LEFT = 4
-
-def moveParts(x, y, parts, newDirection):
-    for idPart, part in enumerate(parts, start=1):
-        part.rect.move_ip(x, y)
-        part.direction = parts[idPart-1].direction
-    parts[0].direction = newDirection
-    return
 
 def getSnakeMovingParams(snakeDirection):
     if(snakeDirection == SnakeDirection.UP):
@@ -119,10 +121,10 @@ def main():
     SP1 = SnakePart(1)
     SP2 = SnakePart(2)
     SP3 = SnakePart(3)
-    #pygame.Rect.union(S.rect, SP1.rect)
-    S.parts.append(SP1)
-    S.parts.append(SP2)
-    S.parts.append(SP3)
+    
+    S.addPart(SP1)
+    S.addPart(SP2)
+    S.addPart(SP3)
 
     while True:
         for event in pygame.event.get():
