@@ -6,6 +6,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 NOTVERYWHITE = (252, 252, 252)
 RED = (255, 50, 50)
+YELLOW = (255, 255, 0)
 
 BLOCK_SIZE = 10
 
@@ -21,10 +22,22 @@ def DrawGrid(screen):
 class Environment(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
+        self.apple = Apple()
 
     def draw(self, surface):
         DrawGrid(surface)
 
+class Apple(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.position = self.setRandomPosition()
+        self.rect = pygame.Rect(self.position.X,self.position.Y, BLOCK_SIZE, BLOCK_SIZE)
+    def setRandomPosition():
+        #randomX = 
+        #TODO GET RANDOM X and Y for apple
+        position = Position()
+    def draw(self, surface):
+        pygame.draw.rect(surface, RED, self.rect, 1, 3)
 class Snake(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__() 
@@ -89,10 +102,13 @@ class SnakePart(pygame.sprite.Sprite):
         self.rect = pygame.Rect(40,40+(BLOCK_SIZE*self.position), BLOCK_SIZE, BLOCK_SIZE)
         self.currentDirection = SnakeDirection.UP
         self.lastDirection = SnakeDirection.UP
-
     def draw(self, surface):
-        pygame.draw.rect(surface, RED, self.rect, 1, 3)
+        pygame.draw.rect(surface, YELLOW, self.rect, 1, 3)
 
+class Position:
+    def __init__(self, X, Y):
+        self.X = X
+        self.Y = Y
 class SnakeDirection(Enum):
     UP = 1
     RIGHT = 2
