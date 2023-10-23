@@ -9,10 +9,11 @@ NOTVERYWHITE = (252, 252, 252)
 RED = (255, 50, 50)
 YELLOW = (255, 255, 0)
 
-BLOCK_SIZE = 10
+BLOCK_SIZE = 20
+SCREEN_SIZE = 200
 
-SCREEN_WIDTH = 100
-SCREEN_HEIGHT = 100
+SCREEN_WIDTH = SCREEN_SIZE
+SCREEN_HEIGHT = SCREEN_SIZE
 
 def DrawGrid(screen):
     for x in range(0, SCREEN_WIDTH, BLOCK_SIZE):
@@ -139,7 +140,7 @@ class SnakePart(pygame.sprite.Sprite):
             self.currentDirection = lastSnakePart.currentDirection
             self.lastDirection = lastSnakePart.lastDirection
         else:
-            self.rect = pygame.Rect(40, 40 + (BLOCK_SIZE * self.position), BLOCK_SIZE, BLOCK_SIZE)
+            self.rect = pygame.Rect(BLOCK_SIZE * 3, (BLOCK_SIZE * 3) + (BLOCK_SIZE * self.position), BLOCK_SIZE, BLOCK_SIZE)
 
     def draw(self, surface):
         pygame.draw.rect(surface, YELLOW, self.rect, 1, 3)
