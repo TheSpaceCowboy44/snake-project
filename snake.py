@@ -118,6 +118,9 @@ class Snake(pygame.sprite.Sprite):
     def checkBadCollision(self):
         if(self.parts[0].rect.x <0 or self.parts[0].rect.x > SCREEN_WIDTH or self.parts[0].rect.y <0 or self.parts[0].rect.y > SCREEN_HEIGHT):
             return True
+        for part in self.parts[1:]:
+            if(self.parts[0].rect.x == part.rect.x and self.parts[0].rect.y == part.rect.y):
+                return True
         return False
     def checkAppleCollision(self, env):
         if(self.parts[0].rect.x == env.apple.position.X and self.parts[0].rect.y == env.apple.position.Y):
@@ -133,6 +136,8 @@ class SnakePart(pygame.sprite.Sprite):
 
         if lastSnakePart is not None:
             self.rect = self.makeSnakePartRect(lastSnakePart)
+            self.currentDirection = lastSnakePart.currentDirection
+            self.lastDirection = lastSnakePart.lastDirection
         else:
             self.rect = pygame.Rect(40, 40 + (BLOCK_SIZE * self.position), BLOCK_SIZE, BLOCK_SIZE)
 
@@ -142,14 +147,16 @@ class SnakePart(pygame.sprite.Sprite):
     def makeSnakePartRect(self, lastSnakePart):
         x= lastSnakePart.rect.left
         y= lastSnakePart.rect.top
-        if(lastSnakePart.lastDirection == SnakeDirection.UP):
+        if(lastSnakePart.currentDirection == SnakeDirection.UP):
             y = y+BLOCK_SIZE
-        if(lastSnakePart.lastDirection == SnakeDirection.DOWN):
+        elif(lastSnakePart.currentDirection == SnakeDirection.DOWN):
             y = y-BLOCK_SIZE
-        if(lastSnakePart.lastDirection == SnakeDirection.RIGHT):
+        elif(lastSnakePart.currentDirection == SnakeDirection.RIGHT):
             x = x-BLOCK_SIZE
-        if(lastSnakePart.lastDirection == SnakeDirection.LEFT):
+        elif(lastSnakePart.currentDirection == SnakeDirection.LEFT):
             x = x+BLOCK_SIZE
+        else:
+            print("fail")
         newRect = pygame.Rect(x, y, BLOCK_SIZE, BLOCK_SIZE)
         return newRect
 
