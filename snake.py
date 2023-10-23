@@ -3,6 +3,8 @@ from pygame.locals import *
 from enum import Enum
 import random
 
+pygame.init()
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 NOTVERYWHITE = (252, 252, 252)
@@ -14,6 +16,12 @@ SCREEN_SIZE = 200
 
 SCREEN_WIDTH = SCREEN_SIZE
 SCREEN_HEIGHT = SCREEN_SIZE
+
+FONT_NAME = "Arial"
+FONT_SIZE = 36
+FONT = pygame.font.Font(None, FONT_SIZE)
+
+isGameOver = False
 
 def DrawGrid(screen):
     for x in range(0, SCREEN_WIDTH, BLOCK_SIZE):
@@ -160,7 +168,6 @@ class SnakePart(pygame.sprite.Sprite):
             print("fail")
         newRect = pygame.Rect(x, y, BLOCK_SIZE, BLOCK_SIZE)
         return newRect
-
 class Position:
     def __init__(self, X, Y):
         self.X = X
@@ -170,7 +177,6 @@ class SnakeDirection(Enum):
     RIGHT = 2
     DOWN = 3
     LEFT = 4
-
 def getSnakeMovingParams(snakeCurrentDirection):
     if(snakeCurrentDirection == SnakeDirection.UP):
         return (0, -BLOCK_SIZE)
@@ -181,49 +187,98 @@ def getSnakeMovingParams(snakeCurrentDirection):
     if(snakeCurrentDirection == SnakeDirection.LEFT):
         return (-BLOCK_SIZE, 0)
 
-def main():
-    pygame.init()
+class Button:
+    def __init__(self, x, y, width, height, text, color, highlight_color, action=None):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.color = color
+        self.highlight_color = highlight_color
+        self.text = text
+        self.action = action
+        self.clicked = False
+
+    def draw(self, screen):
+        color = self.highlight_color if self.clicked else self.color
+        pygame.draw.rect(screen, color, self.rect)
+        text_surface = FONT.render(self.text, True, WHITE)
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        screen.blit(text_surface, text_rect)
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.rect.collidepoint(event.pos):
+                if self.action:
+                    self.action()
+                    self.clicked = True
+
+    def reset_click(self):
+        self.clicked = False
+
+def retryAction(snake, env):
+    global isGameOver
+    isGameOver = False
+    snake.direction = SnakeDirection.UP
+    snake.parts.clear()
+    SPHead = SnakePart(1)
+    SP1 = SnakePart(2)
+    snake.addPart(SPHead)
+    snake.addPart(SP1)
+    env.generateNewApple()
+
+def game():
+    global isGameOver  # Use the global keyword to access the global isGameOver variable
     FPS = 30
+    running = True
     FramePerSec = pygame.time.Clock()
     pygame.display.set_caption("snake")
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+    button = Button(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 50, 200, 50, "Retry", RED, (255, 100, 100), lambda: retryAction(S,E))
 
     E = Environment()
     S = Snake()
     SPHead = SnakePart(1)
     SP1 = SnakePart(2)
-    
-    apple1 = Apple()
-    apple2 = Apple()
-    apple3 = Apple()
 
     S.addPart(SPHead)
     S.addPart(SP1)
 
-    while True:
+    while running:
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-        
-        S.update(screen)
-        if(S.checkAppleCollision(E)):
-            SPNew = SnakePart(S.getLength()+1, S.parts[-1])
-            S.addPart(SPNew)
-            E.generateNewApple()
-        
-        screen.fill(BLACK)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                    pygame.quit()
+                    sys.exit()
+            button.handle_event(event)
 
-        E.draw(screen)
-        E.apple.draw(screen)
-        S.draw(screen)
-        
-        if(S.checkBadCollision()):
-            pygame.quit()
-            sys.exit()
-        pygame.display.update()
-        FramePerSec.tick(FPS)
+        if(isGameOver != True):
+            S.update(screen)
+            if(S.checkAppleCollision(E)):
+                SPNew = SnakePart(S.getLength()+1, S.parts[-1])
+                S.addPart(SPNew)
+                E.generateNewApple()
+            
+            screen.fill(BLACK)
+
+            E.draw(screen)
+            E.apple.draw(screen)
+            S.draw(screen)
+            
+            if(S.checkBadCollision()):
+                isGameOver = True
+            pygame.display.update()
+            FramePerSec.tick(FPS)
+        else:
+            screen.fill(WHITE)
+            text_surface = FONT.render("Game Over", True, RED)
+            text_rect = text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            screen.blit(text_surface, text_rect)
+            button.draw(screen)
+            pygame.display.flip()
 
 if __name__=="__main__":
-    main()
+    game()
 
