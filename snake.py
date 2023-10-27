@@ -10,6 +10,7 @@ WHITE = (255, 255, 255)
 NOTVERYWHITE = (252, 252, 252)
 RED = (255, 50, 50)
 YELLOW = (255, 255, 0)
+GREEN = (0,128,0)
 
 BLOCK_SIZE = 20
 SCREEN_SIZE = 200
@@ -29,29 +30,40 @@ def DrawGrid(screen):
             rect = pygame.Rect(x, y, BLOCK_SIZE, BLOCK_SIZE)
             pygame.draw.rect(screen, WHITE, rect, 1)
 
-def setRandomPosition():
+def setRandomPosition(parts):
     randomX = random.randrange(0, SCREEN_WIDTH, BLOCK_SIZE)
     randomY = random.randrange(0, SCREEN_HEIGHT, BLOCK_SIZE)
-    return Position(randomX, randomY)
+    positionIsOk = False
+    while positionIsOk == False:
+        for part in parts:
+            if(part.rect.x == randomX and part.rect.y == randomY):
+                positionOk = False
+                randomX = random.randrange(0, SCREEN_WIDTH, BLOCK_SIZE)
+                randomY = random.randrange(0, SCREEN_HEIGHT, BLOCK_SIZE)
+                break
+        positionIsOk = True
+    applePosition = Position(randomX, randomY)
+    return applePosition
 
 class Environment(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, s):
         super().__init__()
         self.apple = None
-        self.generateNewApple()
+        self.generateNewApple(s)
     def draw(self, surface):
         DrawGrid(surface)
-    def generateNewApple(self):
+    def generateNewApple(self, snake):
         self.apple = None
-        self.apple = Apple()
+        self.apple = Apple(snake)
 
 class Apple(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, snake):
         super().__init__()
-        self.position = setRandomPosition()
+        self.position = setRandomPosition(snake.parts)
         self.rect = pygame.Rect(self.position.X,self.position.Y, BLOCK_SIZE, BLOCK_SIZE)
     def draw(self, surface):
         pygame.draw.rect(surface, RED, self.rect, 3, 5)
+
 class Snake(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__() 
@@ -60,7 +72,6 @@ class Snake(pygame.sprite.Sprite):
         self.move_timer = pygame.time.get_ticks()
         self.move_interval = 750
         self.direction = SnakeDirection.UP
-
     def update(self, surface):
         pressed_keys = pygame.key.get_pressed()
         hasMoved = False
@@ -81,9 +92,7 @@ class Snake(pygame.sprite.Sprite):
         if pressed_keys[K_RIGHT] and hasMoved == False:
             self.direction = SnakeDirection.RIGHT
             hasMoved = True
-
         self.moveTheDamnSnake(now)
-
     def draw(self, surface):
         for part in self.parts:
             part.draw(surface)
@@ -139,7 +148,7 @@ class Snake(pygame.sprite.Sprite):
 class SnakePart(pygame.sprite.Sprite):
     def __init__(self, position, lastSnakePart=None):
         super(SnakePart, self).__init__()  
-        self.position = position
+        self.snakePosition = position
         self.currentDirection = SnakeDirection.UP
         self.lastDirection = SnakeDirection.UP
 
@@ -148,35 +157,41 @@ class SnakePart(pygame.sprite.Sprite):
             self.currentDirection = lastSnakePart.currentDirection
             self.lastDirection = lastSnakePart.lastDirection
         else:
-            self.rect = pygame.Rect(BLOCK_SIZE * 3, (BLOCK_SIZE * 3) + (BLOCK_SIZE * self.position), BLOCK_SIZE, BLOCK_SIZE)
-
+            self.rect = pygame.Rect(BLOCK_SIZE * 3, (BLOCK_SIZE * 3) + (BLOCK_SIZE * self.snakePosition), BLOCK_SIZE, BLOCK_SIZE)
     def draw(self, surface):
-        pygame.draw.rect(surface, YELLOW, self.rect, 1, 3)
-
+        rectToDraw = self.rect
+        if(self.currentDirection == SnakeDirection.UP or self.currentDirection == SnakeDirection.DOWN):
+            rectToDraw.inflate(-10,0)
+        else:
+            rectToDraw.inflate(0,-10)
+        pygame.draw.rect(surface, GREEN, rectToDraw, 2, 3)
     def makeSnakePartRect(self, lastSnakePart):
         x= lastSnakePart.rect.left
         y= lastSnakePart.rect.top
         if(lastSnakePart.currentDirection == SnakeDirection.UP):
-            y = y+BLOCK_SIZE
+            y += BLOCK_SIZE
         elif(lastSnakePart.currentDirection == SnakeDirection.DOWN):
-            y = y-BLOCK_SIZE
+            y -= BLOCK_SIZE
         elif(lastSnakePart.currentDirection == SnakeDirection.RIGHT):
-            x = x-BLOCK_SIZE
+            x -= BLOCK_SIZE
         elif(lastSnakePart.currentDirection == SnakeDirection.LEFT):
-            x = x+BLOCK_SIZE
+            x += BLOCK_SIZE
         else:
             print("fail")
         newRect = pygame.Rect(x, y, BLOCK_SIZE, BLOCK_SIZE)
         return newRect
+
 class Position:
     def __init__(self, X, Y):
         self.X = X
         self.Y = Y
+
 class SnakeDirection(Enum):
     UP = 1
     RIGHT = 2
     DOWN = 3
     LEFT = 4
+
 def getSnakeMovingParams(snakeCurrentDirection):
     if(snakeCurrentDirection == SnakeDirection.UP):
         return (0, -BLOCK_SIZE)
@@ -222,10 +237,10 @@ def retryAction(snake, env):
     SP1 = SnakePart(2)
     snake.addPart(SPHead)
     snake.addPart(SP1)
-    env.generateNewApple()
+    env.generateNewApple(snake)
 
 def game():
-    global isGameOver  # Use the global keyword to access the global isGameOver variable
+    global isGameOver  
     FPS = 30
     running = True
     FramePerSec = pygame.time.Clock()
@@ -234,10 +249,10 @@ def game():
 
     button = Button(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 50, 200, 50, "Retry", RED, (255, 100, 100), lambda: retryAction(S,E))
 
-    E = Environment()
     S = Snake()
+    E = Environment(S)
     SPHead = SnakePart(1)
-    SP1 = SnakePart(2)
+    SP1 = SnakePart(2, SPHead)
 
     S.addPart(SPHead)
     S.addPart(SP1)
@@ -259,7 +274,7 @@ def game():
             if(S.checkAppleCollision(E)):
                 SPNew = SnakePart(S.getLength()+1, S.parts[-1])
                 S.addPart(SPNew)
-                E.generateNewApple()
+                E.generateNewApple(S)
             
             screen.fill(BLACK)
 
