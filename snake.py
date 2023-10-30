@@ -29,7 +29,6 @@ def DrawGrid(screen):
         for y in range(0, SCREEN_HEIGHT, BLOCK_SIZE):
             rect = pygame.Rect(x, y, BLOCK_SIZE, BLOCK_SIZE)
             pygame.draw.rect(screen, WHITE, rect, 1)
-
 def setRandomPosition(parts):
     randomX = random.randrange(0, SCREEN_WIDTH, BLOCK_SIZE)
     randomY = random.randrange(0, SCREEN_HEIGHT, BLOCK_SIZE)
@@ -80,15 +79,12 @@ class Snake(pygame.sprite.Sprite):
         if pressed_keys[K_UP] and hasMoved == False:
             self.direction = SnakeDirection.UP
             hasMoved = True
-    
         if pressed_keys[K_DOWN] and hasMoved == False:
             self.direction = SnakeDirection.DOWN
             hasMoved = True
-    
         if pressed_keys[K_LEFT] and hasMoved == False:
             self.direction = SnakeDirection.LEFT
             hasMoved = True
-    
         if pressed_keys[K_RIGHT] and hasMoved == False:
             self.direction = SnakeDirection.RIGHT
             hasMoved = True
@@ -151,20 +147,15 @@ class SnakePart(pygame.sprite.Sprite):
         self.snakePosition = position
         self.currentDirection = SnakeDirection.UP
         self.lastDirection = SnakeDirection.UP
-
         if lastSnakePart is not None:
             self.rect = self.makeSnakePartRect(lastSnakePart)
             self.currentDirection = lastSnakePart.currentDirection
             self.lastDirection = lastSnakePart.lastDirection
         else:
             self.rect = pygame.Rect(BLOCK_SIZE * 3, (BLOCK_SIZE * 3) + (BLOCK_SIZE * self.snakePosition), BLOCK_SIZE, BLOCK_SIZE)
+        self.rectToDraw = self.rect
     def draw(self, surface):
-        rectToDraw = self.rect
-        if(self.currentDirection == SnakeDirection.UP or self.currentDirection == SnakeDirection.DOWN):
-            rectToDraw.inflate(-10,0)
-        else:
-            rectToDraw.inflate(0,-10)
-        pygame.draw.rect(surface, GREEN, rectToDraw, 2, 3)
+        pygame.draw.rect(surface, GREEN, self.rectToDraw, 2, 3)
     def makeSnakePartRect(self, lastSnakePart):
         x= lastSnakePart.rect.left
         y= lastSnakePart.rect.top
@@ -210,21 +201,18 @@ class Button:
         self.text = text
         self.action = action
         self.clicked = False
-
     def draw(self, screen):
         color = self.highlight_color if self.clicked else self.color
         pygame.draw.rect(screen, color, self.rect)
         text_surface = FONT.render(self.text, True, WHITE)
         text_rect = text_surface.get_rect(center=self.rect.center)
         screen.blit(text_surface, text_rect)
-
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
                 if self.action:
                     self.action()
                     self.clicked = True
-
     def reset_click(self):
         self.clicked = False
 
