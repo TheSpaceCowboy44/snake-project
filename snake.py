@@ -69,7 +69,7 @@ class Snake(pygame.sprite.Sprite):
         self.parts = []
         self.speed = BLOCK_SIZE
         self.move_timer = pygame.time.get_ticks()
-        self.move_interval = 750
+        self.move_interval = 700
         self.direction = SnakeDirection.UP
     def update(self, surface):
         pressed_keys = pygame.key.get_pressed()
@@ -94,6 +94,18 @@ class Snake(pygame.sprite.Sprite):
             part.draw(surface)
     def addPart(self, snakePart):
         self.parts.append(snakePart)
+        if(len(self.parts) > 4):
+            self.move_interval = 600
+        if(len(self.parts) > 9):
+            self.move_interval = 500
+        if(len(self.parts) > 19):
+            self.move_interval = 400
+        if(len(self.parts) > 29):
+            self.move_interval = 300
+        if(len(self.parts) > 39):
+            self.move_interval = 250
+        if(len(self.parts) > 49):
+            self.move_interval = 200
     def removePart(self):
         self.parts.pop()
     def getLength(self):
