@@ -297,3 +297,4 @@ def game():
 if __name__=="__main__":
     game()
 
+#TODO: fix the apple generation bug that generates apple inside the snak.
