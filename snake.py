@@ -164,7 +164,7 @@ class SnakePart(pygame.sprite.Sprite):
             self.currentDirection = lastSnakePart.currentDirection
             self.lastDirection = lastSnakePart.lastDirection
         else:
-            self.rect = pygame.Rect(BLOCK_SIZE * 3, (BLOCK_SIZE * 3) + (BLOCK_SIZE * self.snakePosition), BLOCK_SIZE, BLOCK_SIZE)
+            self.rect = pygame.Rect(BLOCK_SIZE * 4, (BLOCK_SIZE * 5) + (BLOCK_SIZE * self.snakePosition), BLOCK_SIZE, BLOCK_SIZE)
         self.rectToDraw = self.rect
     def draw(self, surface):
         pygame.draw.rect(surface, GREEN, self.rectToDraw, 2, 3)
@@ -233,6 +233,7 @@ def retryAction(snake, env):
     isGameOver = False
     snake.direction = SnakeDirection.UP
     snake.parts.clear()
+    snake.move_interval = 700
     SPHead = SnakePart(1)
     SP1 = SnakePart(2)
     snake.addPart(SPHead)
