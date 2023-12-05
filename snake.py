@@ -130,7 +130,7 @@ class Snake(pygame.sprite.Sprite):
             self.parts[idPart] = part
         return
     def checkBadCollision(self):
-        if(self.parts[0].rect.x <0 or self.parts[0].rect.x > SCREEN_WIDTH or self.parts[0].rect.y <0 or self.parts[0].rect.y > SCREEN_HEIGHT):
+        if(self.parts[0].rect.x <0 or self.parts[0].rect.x > (SCREEN_WIDTH-BLOCK_SIZE) or self.parts[0].rect.y <0 or self.parts[0].rect.y > (SCREEN_HEIGHT-BLOCK_SIZE)):
             return True
         for part in self.parts[1:]:
             if(self.parts[0].rect.x == part.rect.x and self.parts[0].rect.y == part.rect.y):
